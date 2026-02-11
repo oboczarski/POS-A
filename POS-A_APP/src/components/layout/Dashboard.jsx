@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import StatCard from './StatCard';
 import InsightCallout from './InsightCallout';
+import ChartErrorBoundary from './ChartErrorBoundary';
 import RBvsWRTrendChart from '../charts/RBvsWRTrendChart';
 import QBEliteDroughtChart from '../charts/QBEliteDroughtChart';
 import TEDepthChart from '../charts/TEDepthChart';
@@ -133,7 +134,7 @@ export default function Dashboard() {
         {/* ══════════════════════════ HERO CHART ══════════════════════════ */}
         <section className="mb-8 sm:mb-10">
           <SectionLabel icon={ArrowRightLeft} label="Positional Trends" color="#00FF99" />
-          <RBvsWRTrendChart />
+          <ChartErrorBoundary><RBvsWRTrendChart /></ChartErrorBoundary>
         </section>
 
         {/* ── Insight: RB/WR narrative ── */}
@@ -150,8 +151,8 @@ export default function Dashboard() {
         <section className="mb-8 sm:mb-10">
           <SectionLabel icon={Crosshair} label="Position Deep Dives" color="#d747ff" />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-            <QBEliteDroughtChart />
-            <TEDepthChart />
+            <ChartErrorBoundary><QBEliteDroughtChart /></ChartErrorBoundary>
+            <ChartErrorBoundary><TEDepthChart /></ChartErrorBoundary>
           </div>
         </section>
 
@@ -173,7 +174,7 @@ export default function Dashboard() {
         {/* ══════════════════════════ FULL-WIDTH COMPOSITION ══════════════════════════ */}
         <section className="mb-8 sm:mb-10">
           <SectionLabel icon={LayoutGrid} label="Composition Breakdown" color="#FFB847" />
-          <PositionalDistChart />
+          <ChartErrorBoundary><PositionalDistChart /></ChartErrorBoundary>
         </section>
 
         {/* ── Insights: WR Decline + Forecast ── */}

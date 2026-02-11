@@ -1,6 +1,6 @@
-import { useRef } from 'react';
-import { Bar } from 'react-chartjs-2';
+import { useMemo } from 'react';
 import { ShieldAlert } from 'lucide-react';
+import useChart from '../../hooks/useChart';
 import { getPositionTiersByYear } from '../../data/dataHelpers';
 import { COMBO_1, withAlpha } from '../../data/palettes';
 import ChartCard from '../layout/ChartCard';
@@ -12,40 +12,67 @@ const TIER_COLORS = {
 };
 
 /**
- * QB Elite Drought Chart — grouped bar chart showing QB tier counts by year.
+ * QB Elite Drought Chart — grouped bar (native Chart.js).
  */
 export default function QBEliteDroughtChart() {
-  const chartRef = useRef(null);
   const qbData = getPositionTiersByYear('QB');
-
   const labels = qbData.map(d => d.year.toString());
   const tiers = ['TOP-12', 'TOP-24', 'TOP-36'];
 
-  const datasets = tiers.map(tier => ({
-    label: tier,
-    data: qbData.map(d => d[tier]),
-    backgroundColor: withAlpha(TIER_COLORS[tier], 0.75),
-    hoverBackgroundColor: TIER_COLORS[tier],
-    borderColor: TIER_COLORS[tier],
-    borderWidth: 1,
-    borderRadius: 6,
-    borderSkipped: false,
-  }));
+  const data = useMemo(() => ({
+    labels,
+    datasets: tiers.map(tier => ({
+      label: tier,
+      data: qbData.map(d => d[tier]),
+      backgroundColor: withAlpha(TIER_COLORS[tier], 0.75),
+      hoverBackgroundColor: TIER_COLORS[tier],
+      borderColor: TIER_COLORS[tier],
+      borderWidth: 1,
+      borderRadius: 6,
+      borderSkipped: false,
+    })),
+  }), []);
 
-  const data = { labels, datasets };
+  /** Custom inline plugin: annotation on 2025's zero bar */
+  const annotationPlugin = useMemo(() => ({
+    id: 'qbDroughtAnnotation',
+    afterDraw(chart) {
+      const { ctx, scales } = chart;
+      const xScale = scales.x;
+      const yScale = scales.y;
+      const idx25 = labels.indexOf('2025');
+      if (idx25 === -1) return;
 
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
+      const top12Val = qbData.find(d => d.year === 2025)?.['TOP-12'] ?? 0;
+      if (top12Val === 0) {
+        const xPixel = xScale.getPixelForValue(idx25);
+        const yPixel = yScale.getPixelForValue(0);
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(xPixel - 18, yPixel - 16, 3, 0, Math.PI * 2);
+        ctx.fillStyle = '#ff0aa5';
+        ctx.fill();
+        ctx.restore();
+
+        ctx.save();
+        ctx.font = "700 10px 'Inter', sans-serif";
+        ctx.fillStyle = '#ff0aa5';
+        ctx.textAlign = 'center';
+        ctx.fillText('ZERO', xPixel - 18, yPixel - 6);
+        ctx.restore();
+      }
+    },
+  }), []);
+
+  const options = useMemo(() => ({
     interaction: { mode: 'index', intersect: false },
     scales: {
       x: {
         grid: { display: false },
         ticks: {
           font: { size: 12, weight: 600 },
-          color(ctx) {
-            return ctx.tick?.label === '2025' ? '#ff0aa5' : '#94a3b8';
-          },
+          color: '#94a3b8',
         },
       },
       y: {
@@ -75,41 +102,14 @@ export default function QBEliteDroughtChart() {
         },
       },
     },
-  };
+  }), []);
 
-  // Custom plugin: annotation on 2025's zero bar
-  const annotationPlugin = {
-    id: 'qbDroughtAnnotation',
-    afterDraw(chart) {
-      const { ctx, scales } = chart;
-      const xScale = scales.x;
-      const yScale = scales.y;
-      const idx25 = labels.indexOf('2025');
-      if (idx25 === -1) return;
-
-      const top12Val = qbData.find(d => d.year === 2025)?.['TOP-12'] ?? 0;
-      if (top12Val === 0) {
-        const xPixel = xScale.getPixelForValue(idx25);
-        const yPixel = yScale.getPixelForValue(0);
-
-        // Draw pulsing circle
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(xPixel - 18, yPixel - 16, 3, 0, Math.PI * 2);
-        ctx.fillStyle = '#ff0aa5';
-        ctx.fill();
-        ctx.restore();
-
-        // Draw label
-        ctx.save();
-        ctx.font = "700 10px 'Inter', sans-serif";
-        ctx.fillStyle = '#ff0aa5';
-        ctx.textAlign = 'center';
-        ctx.fillText('ZERO', xPixel - 18, yPixel - 6);
-        ctx.restore();
-      }
-    },
-  };
+  const { canvasRef } = useChart({
+    type: 'bar',
+    data,
+    options,
+    plugins: [annotationPlugin],
+  });
 
   return (
     <ChartCard
@@ -120,8 +120,8 @@ export default function QBEliteDroughtChart() {
       glowClass="glow-pink"
       className="delay-5"
     >
-      <div className="h-[320px] sm:h-[360px]">
-        <Bar ref={chartRef} data={data} options={options} plugins={[annotationPlugin]} />
+      <div style={{ position: 'relative', width: '100%', height: '360px' }}>
+        <canvas ref={canvasRef} />
       </div>
     </ChartCard>
   );

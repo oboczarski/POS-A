@@ -1,42 +1,31 @@
-import { useState, useRef, useCallback } from 'react';
-import { Line } from 'react-chartjs-2';
+import { useState, useMemo } from 'react';
 import { ArrowRightLeft } from 'lucide-react';
+import useChart from '../../hooks/useChart';
 import { getRBvsWRByYear } from '../../data/dataHelpers';
-import { COMBO_4, withAlpha, createVerticalGradient } from '../../data/palettes';
+import { COMBO_4, withAlpha } from '../../data/palettes';
 import { RANGES } from '../../data/posDistribution';
 import ChartCard from '../layout/ChartCard';
 
 const RB_COLOR = COMBO_4[0]; // #00FF99
 const WR_COLOR = COMBO_4[6]; // #8F00FF
-
 const TIER_OPTIONS = [...RANGES].reverse(); // TOP-60 first
 
 /**
- * Hero Chart — RB vs WR Trend Reversal.
+ * Hero Chart — RB vs WR Trend Reversal (native Chart.js).
  */
 export default function RBvsWRTrendChart() {
   const [selectedTier, setSelectedTier] = useState('TOP-60');
-  const chartRef = useRef(null);
-
   const rawData = getRBvsWRByYear(selectedTier);
   const labels = rawData.map(d => d.year.toString());
 
-  const getGradient = useCallback((ctx, chartArea, color) => {
-    if (!chartArea) return withAlpha(color, 0.3);
-    return createVerticalGradient(ctx, chartArea, color, color, 0.3, 0.01);
-  }, []);
-
-  const data = {
+  const data = useMemo(() => ({
     labels,
     datasets: [
       {
         label: 'Running Backs',
         data: rawData.map(d => d.rb),
         borderColor: RB_COLOR,
-        backgroundColor(context) {
-          const { ctx, chartArea } = context.chart;
-          return getGradient(ctx, chartArea, RB_COLOR);
-        },
+        backgroundColor: withAlpha(RB_COLOR, 0.15),
         pointBackgroundColor: RB_COLOR,
         pointBorderColor: '#0a0a1a',
         fill: true,
@@ -50,10 +39,7 @@ export default function RBvsWRTrendChart() {
         label: 'Wide Receivers',
         data: rawData.map(d => d.wr),
         borderColor: WR_COLOR,
-        backgroundColor(context) {
-          const { ctx, chartArea } = context.chart;
-          return getGradient(ctx, chartArea, WR_COLOR);
-        },
+        backgroundColor: withAlpha(WR_COLOR, 0.12),
         pointBackgroundColor: WR_COLOR,
         pointBorderColor: '#0a0a1a',
         fill: true,
@@ -64,11 +50,9 @@ export default function RBvsWRTrendChart() {
         pointBorderWidth: 2,
       },
     ],
-  };
+  }), [selectedTier]);
 
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
+  const options = useMemo(() => ({
     interaction: { mode: 'index', intersect: false },
     scales: {
       x: {
@@ -102,7 +86,9 @@ export default function RBvsWRTrendChart() {
         },
       },
     },
-  };
+  }), []);
+
+  const { canvasRef } = useChart({ type: 'line', data, options });
 
   return (
     <ChartCard
@@ -130,8 +116,8 @@ export default function RBvsWRTrendChart() {
         ))}
       </div>
 
-      <div className="h-[340px] sm:h-[400px]">
-        <Line ref={chartRef} data={data} options={options} />
+      <div style={{ position: 'relative', width: '100%', height: '400px' }}>
+        <canvas ref={canvasRef} />
       </div>
     </ChartCard>
   );

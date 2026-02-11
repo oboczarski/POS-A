@@ -1,6 +1,6 @@
-import { useRef } from 'react';
-import { Radar } from 'react-chartjs-2';
+import { useMemo } from 'react';
 import { Waves } from 'lucide-react';
+import useChart from '../../hooks/useChart';
 import { getPositionTiersByYear } from '../../data/dataHelpers';
 import { COMBO_3, withAlpha } from '../../data/palettes';
 import ChartCard from '../layout/ChartCard';
@@ -13,36 +13,33 @@ const YEAR_CONFIGS = [
 ];
 
 /**
- * TE Depth Explosion Chart — radar chart.
+ * TE Depth Explosion Chart — radar chart (native Chart.js).
  */
 export default function TEDepthChart() {
-  const chartRef = useRef(null);
   const teData = getPositionTiersByYear('TE');
-
   const tierLabels = ['Top 12', 'Top 24', 'Top 36', 'Top 48', 'Top 60'];
   const tierKeys = ['TOP-12', 'TOP-24', 'TOP-36', 'TOP-48', 'TOP-60'];
 
-  const datasets = YEAR_CONFIGS.map(cfg => {
-    const yearEntry = teData.find(d => d.year === cfg.year);
-    return {
-      label: cfg.label,
-      data: tierKeys.map(k => yearEntry?.[k] ?? 0),
-      borderColor: cfg.color,
-      backgroundColor: withAlpha(cfg.color, cfg.year === 2025 ? 0.15 : 0.04),
-      pointBackgroundColor: cfg.color,
-      pointBorderColor: '#0a0a1a',
-      borderWidth: cfg.weight,
-      pointRadius: cfg.year === 2025 ? 5 : 3,
-      pointHoverRadius: 8,
-      pointBorderWidth: 2,
-    };
-  });
+  const data = useMemo(() => ({
+    labels: tierLabels,
+    datasets: YEAR_CONFIGS.map(cfg => {
+      const yearEntry = teData.find(d => d.year === cfg.year);
+      return {
+        label: cfg.label,
+        data: tierKeys.map(k => yearEntry?.[k] ?? 0),
+        borderColor: cfg.color,
+        backgroundColor: withAlpha(cfg.color, cfg.year === 2025 ? 0.15 : 0.04),
+        pointBackgroundColor: cfg.color,
+        pointBorderColor: '#0a0a1a',
+        borderWidth: cfg.weight,
+        pointRadius: cfg.year === 2025 ? 5 : 3,
+        pointHoverRadius: 8,
+        pointBorderWidth: 2,
+      };
+    }),
+  }), []);
 
-  const data = { labels: tierLabels, datasets };
-
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
+  const options = useMemo(() => ({
     scales: {
       r: {
         beginAtZero: true,
@@ -74,7 +71,9 @@ export default function TEDepthChart() {
         },
       },
     },
-  };
+  }), []);
+
+  const { canvasRef } = useChart({ type: 'radar', data, options });
 
   return (
     <ChartCard
@@ -85,8 +84,8 @@ export default function TEDepthChart() {
       glowClass="glow-blue"
       className="delay-6"
     >
-      <div className="h-[340px] sm:h-[400px] flex items-center justify-center">
-        <Radar ref={chartRef} data={data} options={options} />
+      <div style={{ position: 'relative', width: '100%', height: '400px' }}>
+        <canvas ref={canvasRef} />
       </div>
     </ChartCard>
   );

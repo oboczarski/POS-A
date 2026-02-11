@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react';
-import { Bar } from 'react-chartjs-2';
+import { useState, useMemo } from 'react';
 import { LayoutGrid } from 'lucide-react';
+import useChart from '../../hooks/useChart';
 import { getPositionalComposition } from '../../data/dataHelpers';
 import { COMBO_2, withAlpha } from '../../data/palettes';
 import { POS_DIST_YEARS } from '../../data/posDistribution';
@@ -17,31 +17,28 @@ const POS_BAR_COLORS = {
 const POSITIONS = ['QB', 'RB', 'WR', 'TE'];
 
 /**
- * Positional Composition Chart — stacked bar showing the position mix at each tier.
+ * Positional Composition Chart — stacked horizontal bar (native Chart.js).
  */
 export default function PositionalDistChart() {
   const [selectedYear, setSelectedYear] = useState(2025);
-  const chartRef = useRef(null);
-
   const composition = getPositionalComposition(selectedYear);
   const labels = composition.map(c => c.range);
 
-  const datasets = POSITIONS.map(pos => ({
-    label: pos,
-    data: composition.map(c => c[pos]),
-    backgroundColor: withAlpha(POS_BAR_COLORS[pos], 0.8),
-    hoverBackgroundColor: POS_BAR_COLORS[pos],
-    borderColor: withAlpha(POS_BAR_COLORS[pos], 0.9),
-    borderWidth: 1,
-    borderRadius: 4,
-    borderSkipped: false,
-  }));
+  const data = useMemo(() => ({
+    labels,
+    datasets: POSITIONS.map(pos => ({
+      label: pos,
+      data: composition.map(c => c[pos]),
+      backgroundColor: withAlpha(POS_BAR_COLORS[pos], 0.8),
+      hoverBackgroundColor: POS_BAR_COLORS[pos],
+      borderColor: withAlpha(POS_BAR_COLORS[pos], 0.9),
+      borderWidth: 1,
+      borderRadius: 4,
+      borderSkipped: false,
+    })),
+  }), [selectedYear]);
 
-  const data = { labels, datasets };
-
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
+  const options = useMemo(() => ({
     indexAxis: 'y',
     scales: {
       x: {
@@ -72,14 +69,12 @@ export default function PositionalDistChart() {
       tooltip: {
         callbacks: {
           title(items) { return `${selectedYear} — ${items[0]?.label}`; },
-          afterBody(items) {
-            const total = items.reduce((sum, i) => sum + (i.raw || 0), 0);
-            return `\nTotal: ${total} players`;
-          },
         },
       },
     },
-  };
+  }), [selectedYear]);
+
+  const { canvasRef } = useChart({ type: 'bar', data, options });
 
   return (
     <ChartCard
@@ -107,8 +102,8 @@ export default function PositionalDistChart() {
         ))}
       </div>
 
-      <div className="h-[340px] sm:h-[380px]">
-        <Bar ref={chartRef} data={data} options={options} />
+      <div style={{ position: 'relative', width: '100%', height: '380px' }}>
+        <canvas ref={canvasRef} />
       </div>
     </ChartCard>
   );
