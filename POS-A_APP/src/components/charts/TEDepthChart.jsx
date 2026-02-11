@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { Radar } from 'react-chartjs-2';
-import '../../theme/chartDefaults';
+import { Waves } from 'lucide-react';
 import { getPositionTiersByYear } from '../../data/dataHelpers';
 import { COMBO_3, withAlpha } from '../../data/palettes';
 import ChartCard from '../layout/ChartCard';
@@ -13,8 +13,7 @@ const YEAR_CONFIGS = [
 ];
 
 /**
- * TE Depth Explosion Chart — radar chart showing TE tier counts across years.
- * 2025 polygon is dramatically larger at Top-48/60 but not Top-12.
+ * TE Depth Explosion Chart — radar chart.
  */
 export default function TEDepthChart() {
   const chartRef = useRef(null);
@@ -29,12 +28,13 @@ export default function TEDepthChart() {
       label: cfg.label,
       data: tierKeys.map(k => yearEntry?.[k] ?? 0),
       borderColor: cfg.color,
-      backgroundColor: withAlpha(cfg.color, cfg.year === 2025 ? 0.15 : 0.05),
+      backgroundColor: withAlpha(cfg.color, cfg.year === 2025 ? 0.15 : 0.04),
       pointBackgroundColor: cfg.color,
-      pointBorderColor: '#0f172a',
+      pointBorderColor: '#0a0a1a',
       borderWidth: cfg.weight,
       pointRadius: cfg.year === 2025 ? 5 : 3,
-      pointHoverRadius: 7,
+      pointHoverRadius: 8,
+      pointBorderWidth: 2,
     };
   });
 
@@ -53,37 +53,24 @@ export default function TEDepthChart() {
           backdropColor: 'transparent',
           font: { size: 10 },
         },
-        grid: {
-          color: 'rgba(255,255,255,0.06)',
-          circular: true,
-        },
+        grid: { color: 'rgba(255,255,255,0.06)', circular: true },
         pointLabels: {
           color: '#cbd5e1',
           font: { size: 12, weight: 500, family: "'Inter', sans-serif" },
-          padding: 12,
+          padding: 14,
         },
-        angleLines: {
-          color: 'rgba(255,255,255,0.06)',
-        },
+        angleLines: { color: 'rgba(255,255,255,0.06)' },
       },
     },
     plugins: {
       legend: {
         position: 'bottom',
-        labels: {
-          padding: 18,
-          font: { size: 12, weight: 500 },
-        },
+        labels: { padding: 18, font: { size: 12, weight: 500 } },
       },
       tooltip: {
         callbacks: {
-          title: (items) => {
-            const label = items[0]?.label;
-            return `Tight Ends — ${label}`;
-          },
-          label: (item) => {
-            return ` ${item.dataset.label}: ${item.raw} players`;
-          },
+          title(items) { return `Tight Ends — ${items[0]?.label}`; },
+          label(item) { return ` ${item.dataset.label}: ${item.raw} players`; },
         },
       },
     },
@@ -93,10 +80,12 @@ export default function TEDepthChart() {
     <ChartCard
       title="TE Depth Explosion"
       subtitle="Tight End representation across tiers — 2025 shattered volume records"
+      icon={Waves}
+      iconColor="#69D6FF"
       glowClass="glow-blue"
       className="delay-6"
     >
-      <div className="h-[340px] sm:h-[380px] flex items-center justify-center">
+      <div className="h-[340px] sm:h-[400px] flex items-center justify-center">
         <Radar ref={chartRef} data={data} options={options} />
       </div>
     </ChartCard>

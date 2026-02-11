@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { Bar } from 'react-chartjs-2';
-import '../../theme/chartDefaults';
+import { LayoutGrid } from 'lucide-react';
 import { getPositionalComposition } from '../../data/dataHelpers';
 import { COMBO_2, withAlpha } from '../../data/palettes';
 import { POS_DIST_YEARS } from '../../data/posDistribution';
@@ -18,14 +18,12 @@ const POSITIONS = ['QB', 'RB', 'WR', 'TE'];
 
 /**
  * Positional Composition Chart — stacked bar showing the position mix at each tier.
- * Interactive year selector to compare across seasons.
  */
 export default function PositionalDistChart() {
   const [selectedYear, setSelectedYear] = useState(2025);
   const chartRef = useRef(null);
 
   const composition = getPositionalComposition(selectedYear);
-
   const labels = composition.map(c => c.range);
 
   const datasets = POSITIONS.map(pos => ({
@@ -35,7 +33,7 @@ export default function PositionalDistChart() {
     hoverBackgroundColor: POS_BAR_COLORS[pos],
     borderColor: withAlpha(POS_BAR_COLORS[pos], 0.9),
     borderWidth: 1,
-    borderRadius: 3,
+    borderRadius: 4,
     borderSkipped: false,
   }));
 
@@ -50,13 +48,8 @@ export default function PositionalDistChart() {
         stacked: true,
         beginAtZero: true,
         max: 65,
-        ticks: {
-          font: { size: 11 },
-          stepSize: 10,
-        },
-        grid: {
-          color: 'rgba(255,255,255,0.04)',
-        },
+        ticks: { font: { size: 11 }, stepSize: 10 },
+        grid: { color: 'rgba(255,255,255,0.04)' },
         title: {
           display: true,
           text: 'Number of Players',
@@ -67,27 +60,19 @@ export default function PositionalDistChart() {
       y: {
         stacked: true,
         grid: { display: false },
-        ticks: {
-          font: { size: 13, weight: 600 },
-          color: '#e2e8f0',
-        },
+        ticks: { font: { size: 13, weight: 600 }, color: '#e2e8f0' },
       },
     },
     plugins: {
       legend: {
         position: 'top',
         align: 'end',
-        labels: {
-          padding: 16,
-          font: { size: 12, weight: 500 },
-        },
+        labels: { padding: 16, font: { size: 12, weight: 500 } },
       },
       tooltip: {
         callbacks: {
-          title: (items) => {
-            return `${selectedYear} — ${items[0]?.label}`;
-          },
-          afterBody: (items) => {
+          title(items) { return `${selectedYear} — ${items[0]?.label}`; },
+          afterBody(items) {
             const total = items.reduce((sum, i) => sum + (i.raw || 0), 0);
             return `\nTotal: ${total} players`;
           },
@@ -100,19 +85,21 @@ export default function PositionalDistChart() {
     <ChartCard
       title="Positional Composition by Tier"
       subtitle={`How the top overall finishers break down by position — ${selectedYear}`}
+      icon={LayoutGrid}
+      iconColor="#FFB847"
       glowClass="glow-amber"
       className="delay-7"
     >
       {/* Year toggle */}
-      <div className="flex flex-wrap gap-1.5 mb-4">
+      <div className="flex flex-wrap gap-1.5 mb-5">
         {POS_DIST_YEARS.map(year => (
           <button
             key={year}
             onClick={() => setSelectedYear(year)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${
               selectedYear === year
-                ? 'bg-[#FFB847]/20 text-[#FFB847] border border-[#FFB847]/30'
-                : 'bg-white/5 text-slate-400 border border-white/5 hover:bg-white/10 hover:text-slate-200'
+                ? 'bg-[#FFB847]/15 text-[#FFB847] border border-[#FFB847]/30 shadow-[0_0_12px_rgba(255,184,71,0.1)]'
+                : 'bg-white/[0.04] text-slate-400 border border-white/[0.06] hover:bg-white/[0.08] hover:text-slate-200'
             }`}
           >
             {year}
@@ -120,7 +107,7 @@ export default function PositionalDistChart() {
         ))}
       </div>
 
-      <div className="h-[320px] sm:h-[350px]">
+      <div className="h-[340px] sm:h-[380px]">
         <Bar ref={chartRef} data={data} options={options} />
       </div>
     </ChartCard>

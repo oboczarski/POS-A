@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { Bar } from 'react-chartjs-2';
-import '../../theme/chartDefaults';
+import { ShieldAlert } from 'lucide-react';
 import { getPositionTiersByYear } from '../../data/dataHelpers';
 import { COMBO_1, withAlpha } from '../../data/palettes';
 import ChartCard from '../layout/ChartCard';
@@ -13,7 +13,6 @@ const TIER_COLORS = {
 
 /**
  * QB Elite Drought Chart — grouped bar chart showing QB tier counts by year.
- * Highlights the 2025 collapse: 0 Top-12, 2 Top-24.
  */
 export default function QBEliteDroughtChart() {
   const chartRef = useRef(null);
@@ -38,16 +37,13 @@ export default function QBEliteDroughtChart() {
   const options = {
     responsive: true,
     maintainAspectRatio: false,
-    interaction: {
-      mode: 'index',
-      intersect: false,
-    },
+    interaction: { mode: 'index', intersect: false },
     scales: {
       x: {
         grid: { display: false },
         ticks: {
           font: { size: 12, weight: 600 },
-          color: (ctx) => {
+          color(ctx) {
             return ctx.tick?.label === '2025' ? '#ff0aa5' : '#94a3b8';
           },
         },
@@ -55,37 +51,25 @@ export default function QBEliteDroughtChart() {
       y: {
         beginAtZero: true,
         max: 11,
-        ticks: {
-          stepSize: 2,
-          font: { size: 11 },
-        },
-        grid: {
-          color: 'rgba(255,255,255,0.04)',
-        },
+        ticks: { stepSize: 2, font: { size: 11 } },
+        grid: { color: 'rgba(255,255,255,0.04)' },
       },
     },
     plugins: {
       legend: {
         position: 'top',
         align: 'end',
-        labels: {
-          padding: 14,
-          font: { size: 12, weight: 500 },
-        },
+        labels: { padding: 14, font: { size: 12, weight: 500 } },
       },
       tooltip: {
         callbacks: {
-          title: (items) => {
+          title(items) {
             const year = items[0]?.label;
-            return year === '2025'
-              ? `${year} — ⚠️ QB Drought`
-              : year;
+            return year === '2025' ? `${year} — QB Drought` : year;
           },
-          afterBody: (items) => {
+          afterBody(items) {
             const year = items[0]?.label;
-            if (year === '2025') {
-              return '\n🔴 First year with ZERO Top-12 QBs';
-            }
+            if (year === '2025') return '\nFirst year with ZERO Top-12 QBs';
             return '';
           },
         },
@@ -93,7 +77,7 @@ export default function QBEliteDroughtChart() {
     },
   };
 
-  // Custom plugin: draw annotation label on the 2025 "0" bar
+  // Custom plugin: annotation on 2025's zero bar
   const annotationPlugin = {
     id: 'qbDroughtAnnotation',
     afterDraw(chart) {
@@ -108,11 +92,20 @@ export default function QBEliteDroughtChart() {
         const xPixel = xScale.getPixelForValue(idx25);
         const yPixel = yScale.getPixelForValue(0);
 
+        // Draw pulsing circle
         ctx.save();
-        ctx.font = "600 10px 'Inter', sans-serif";
+        ctx.beginPath();
+        ctx.arc(xPixel - 18, yPixel - 16, 3, 0, Math.PI * 2);
+        ctx.fillStyle = '#ff0aa5';
+        ctx.fill();
+        ctx.restore();
+
+        // Draw label
+        ctx.save();
+        ctx.font = "700 10px 'Inter', sans-serif";
         ctx.fillStyle = '#ff0aa5';
         ctx.textAlign = 'center';
-        ctx.fillText('ZERO', xPixel - 18, yPixel - 12);
+        ctx.fillText('ZERO', xPixel - 18, yPixel - 6);
         ctx.restore();
       }
     },
@@ -122,10 +115,12 @@ export default function QBEliteDroughtChart() {
     <ChartCard
       title="The Elite QB Drought"
       subtitle="Quarterback top-tier finishes by year (2019–2025)"
+      icon={ShieldAlert}
+      iconColor="#ff0aa5"
       glowClass="glow-pink"
       className="delay-5"
     >
-      <div className="h-[320px] sm:h-[340px]">
+      <div className="h-[320px] sm:h-[360px]">
         <Bar ref={chartRef} data={data} options={options} plugins={[annotationPlugin]} />
       </div>
     </ChartCard>
