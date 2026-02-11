@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+body {
+  background: #0a0a1a;
+  color: #ffffff;
+  min-height: 100vh;
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.dashboard-bg {
+  background: linear-gradient(135deg, #0a0a1a 0%, #0d1130 25%, #130d2e 50%, #0a1628 75%, #0a0a1a 100%);
+  min-height: 100vh;
+}
+
+.glow-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  border-radius: 1rem;
+  box-shadow: 0 0 30px rgba(120, 102, 255, 0.08), 0 0 60px rgba(0, 169, 241, 0.04);
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.glow-card:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 40px rgba(120, 102, 255, 0.12), 0 0 80px rgba(0, 169, 241, 0.06);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
