@@ -1,40 +1,11 @@
 /**
  * Global Chart.js defaults for dark mode dashboard.
  * MUST be imported once at app entry (main.jsx) before any chart renders.
+ *
+ * Uses 'chart.js/auto' to auto-register ALL controllers, elements, scales,
+ * and plugins — prevents production tree-shaking from stripping components.
  */
-import {
-  Chart,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  BarController,
-  LineElement,
-  LineController,
-  PointElement,
-  ArcElement,
-  RadialLinearScale,
-  RadarController,
-  Tooltip,
-  Legend,
-  Filler,
-} from 'chart.js';
-
-// ── Register ALL components explicitly ──
-Chart.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  BarController,
-  LineElement,
-  LineController,
-  PointElement,
-  ArcElement,
-  RadialLinearScale,
-  RadarController,
-  Tooltip,
-  Legend,
-  Filler,
-);
+import { Chart } from 'chart.js/auto';
 
 // ── Global Defaults ──
 const defaults = Chart.defaults;
