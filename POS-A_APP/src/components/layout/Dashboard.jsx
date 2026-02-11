@@ -1,11 +1,11 @@
 import '../../theme/chartDefaults';
-import { getStatCardMetrics } from '../data/dataHelpers';
-import StatCard from './layout/StatCard';
-import InsightCallout from './layout/InsightCallout';
-import RBvsWRTrendChart from './charts/RBvsWRTrendChart';
-import QBEliteDroughtChart from './charts/QBEliteDroughtChart';
-import TEDepthChart from './charts/TEDepthChart';
-import PositionalDistChart from './charts/PositionalDistChart';
+import { getStatCardMetrics } from '../../data/dataHelpers';
+import StatCard from './StatCard';
+import InsightCallout from './InsightCallout';
+import RBvsWRTrendChart from '../charts/RBvsWRTrendChart';
+import QBEliteDroughtChart from '../charts/QBEliteDroughtChart';
+import TEDepthChart from '../charts/TEDepthChart';
+import PositionalDistChart from '../charts/PositionalDistChart';
 
 const stats = getStatCardMetrics();
 

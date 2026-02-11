@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { Radar } from 'react-chartjs-2';
-import '../../../theme/chartDefaults';
+import '../../theme/chartDefaults';
 import { getPositionTiersByYear } from '../../data/dataHelpers';
 import { COMBO_3, withAlpha } from '../../data/palettes';
 import ChartCard from '../layout/ChartCard';

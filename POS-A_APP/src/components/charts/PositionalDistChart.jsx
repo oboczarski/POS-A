@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { Bar } from 'react-chartjs-2';
-import '../../../theme/chartDefaults';
+import '../../theme/chartDefaults';
 import { getPositionalComposition } from '../../data/dataHelpers';
 import { COMBO_2, withAlpha } from '../../data/palettes';
 import { POS_DIST_YEARS } from '../../data/posDistribution';

@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { Line } from 'react-chartjs-2';
-import '../../../theme/chartDefaults';
+import '../../theme/chartDefaults';
 import { getRBvsWRByYear } from '../../data/dataHelpers';
 import { COMBO_4, withAlpha, createVerticalGradient } from '../../data/palettes';
 import { RANGES } from '../../data/posDistribution';
