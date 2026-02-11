@@ -1,0 +1,4 @@
+[build]
+  base = "POS-A_APP"
+  command = "npm run build"
+  publish = "dist"
