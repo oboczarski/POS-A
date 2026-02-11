@@ -5,5 +5,6 @@ import { vi } from 'vitest';
 vi.mock('react-chartjs-2', () => ({
   Line: () => React.createElement('div', { 'data-testid': 'line-chart' }),
   Bar: () => React.createElement('div', { 'data-testid': 'bar-chart' }),
-  Radar: () => React.createElement('div', { 'data-testid': 'radar-chart' })
+  Radar: () => React.createElement('div', { 'data-testid': 'radar-chart' }),
+  Bubble: () => React.createElement('div', { 'data-testid': 'bubble-chart' })
 }));

@@ -3,6 +3,7 @@ import { positions } from './palettes';
 
 const ORDERED_TIERS_ASC = [12, 24, 36, 48, 60];
 const ORDERED_TIERS_DESC = [60, 48, 36, 24, 12];
+const RB_WR_ANALYSIS_SEASONS = [2020, 2021, 2022, 2023, 2024, 2025];
 
 function requireMatrixValue(matrix, key, year) {
   if (!matrix.data[key]) {
@@ -22,6 +23,13 @@ function getPosRow(model, season, tier) {
     throw new Error(`POS distribution row missing for season ${season} and top-${tier}.`);
   }
   return row;
+}
+
+function average(values) {
+  if (!values.length) {
+    return 0;
+  }
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
 /**
@@ -85,7 +93,7 @@ export function getHeadlineStats(model) {
       label: 'RB Top-12 in 2025',
       value: rbTop12,
       valueDisplay: String(rbTop12),
-      context: 'Double the next-best single-season mark.'
+      context: 'Resurgence peak across tracked years.'
     },
     {
       id: 'wr-top-60-change-2023-2025',
@@ -124,7 +132,112 @@ export function getOverallDeclineSeries(model) {
 
   return {
     years,
+    series,
+    top36Decline: {
+      from2020: requireMatrixValue(model.seasonOutputMatrix, 'ALL_TOP-36', 2020),
+      to2025: requireMatrixValue(model.seasonOutputMatrix, 'ALL_TOP-36', 2025)
+    }
+  };
+}
+
+export function getEliteScarcitySeries(model) {
+  const years = [...model.years];
+  const counts = years.map(
+    (year) =>
+      requireMatrixValue(model.seasonOutputMatrix, 'ALL_TOP-24', year) +
+      requireMatrixValue(model.seasonOutputMatrix, 'ALL_TOP-12', year)
+  );
+
+  const total = counts.reduce((sum, value) => sum + value, 0);
+  const shares = counts.map((count) => (count / total) * 100);
+
+  const entries = years.map((year, index) => ({
+    year,
+    count: counts[index],
+    share: shares[index]
+  }));
+
+  const min = entries.reduce((lowest, entry) => (entry.count < lowest.count ? entry : lowest), entries[0]);
+  const max = entries.reduce((highest, entry) => (entry.count > highest.count ? entry : highest), entries[0]);
+
+  const baselineEntries = entries.filter((entry) => entry.year >= 2020 && entry.year <= 2024);
+  const baselineAverage = average(baselineEntries.map((entry) => entry.count));
+
+  return {
+    years,
+    counts,
+    shares,
+    total,
+    average: average(counts),
+    baselineAverage,
+    min,
+    max,
+    entries
+  };
+}
+
+export function getTopRangePositionTrend(model, range = 'TOP-60') {
+  const years = [...model.years];
+  const series = positions.map((position) => {
+    const key = `${position}_${range}`;
+    return {
+      position,
+      label: position,
+      values: years.map((year) => requireMatrixValue(model.seasonOutputMatrix, key, year))
+    };
+  });
+
+  return {
+    years,
+    range,
     series
+  };
+}
+
+export function getRbWrDeltaMatrix(model) {
+  const tiers = [...ORDERED_TIERS_DESC];
+  const seasons = RB_WR_ANALYSIS_SEASONS.filter((season) =>
+    tiers.every((tier) => model.posBySeasonTier.has(`${season}-${tier}`))
+  );
+
+  const entries = seasons
+    .flatMap((season) =>
+      tiers.map((tier) => {
+        const row = getPosRow(model, season, tier);
+        return {
+          season,
+          tier,
+          rb: row.RB,
+          wr: row.WR,
+          delta: row.RB - row.WR
+        };
+      })
+    )
+    .sort((left, right) => left.season - right.season || right.tier - left.tier);
+
+  const maxMagnitude = entries.reduce(
+    (maxValue, entry) => Math.max(maxValue, Math.abs(entry.delta)),
+    0
+  );
+
+  const toBubblePoint = (entry) => ({
+    x: entry.season,
+    y: entry.tier,
+    r: 6 + Math.abs(entry.delta) * 2.1,
+    season: entry.season,
+    tier: entry.tier,
+    rb: entry.rb,
+    wr: entry.wr,
+    delta: entry.delta
+  });
+
+  return {
+    seasons,
+    tiers,
+    maxMagnitude,
+    entries,
+    positive: entries.filter((entry) => entry.delta >= 0).map(toBubblePoint),
+    negative: entries.filter((entry) => entry.delta < 0).map(toBubblePoint)
   };
 }
 

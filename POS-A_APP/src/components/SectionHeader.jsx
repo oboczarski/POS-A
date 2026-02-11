@@ -1,11 +1,12 @@
 import clsx from 'clsx';
 
-function SectionHeader({ title, subtitle, className }) {
+function SectionHeader({ title, subtitle, eyebrow = 'DATA VISUAL', className }) {
   return (
-    <div className={clsx('mb-4 flex flex-col gap-1', className)}>
-      <h3 className="text-base font-semibold tracking-tight text-slate-100 sm:text-lg">{title}</h3>
-      {subtitle ? <p className="text-xs leading-relaxed text-slate-400 sm:text-sm">{subtitle}</p> : null}
-    </div>
+    <header className={clsx('mb-4 flex flex-col gap-2', className)}>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-cyan-300/90">{eyebrow}</p>
+      <h3 className="text-lg font-semibold tracking-tight text-slate-100 sm:text-xl">{title}</h3>
+      {subtitle ? <p className="text-sm leading-relaxed text-slate-400">{subtitle}</p> : null}
+    </header>
   );
 }
 

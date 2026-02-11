@@ -1,33 +1,48 @@
 import { Bar } from 'react-chartjs-2';
 import SectionHeader from '../components/SectionHeader';
-import { getBaseChartOptions, getPaletteSlice, withAlpha } from './chartTheme';
-import { positions } from '../data/palettes';
+import { getBaseChartOptions, withAlpha } from './chartTheme';
+
+const positionColors = {
+  QB: '#0099FF',
+  RB: '#00FF99',
+  WR: '#ff0aa5',
+  TE: '#8F33FF'
+};
 
 function PositionCompositionByTierChart({ chartData }) {
-  const colors = getPaletteSlice('combo4', 4);
+  const labels = [...chartData.labels].reverse();
+  const reverseValues = (values) => [...values].reverse();
+
+  const datasets = Object.keys(positionColors).map((position) => ({
+    label: position,
+    data: reverseValues(chartData.percentages[position]),
+    rawCounts: reverseValues(chartData.counts[position]),
+    stack: 'share',
+    backgroundColor: withAlpha(positionColors[position], 0.86),
+    borderColor: positionColors[position],
+    borderWidth: 1,
+    borderRadius: 7,
+    borderSkipped: false,
+    maxBarThickness: 30
+  }));
 
   const data = {
-    labels: chartData.labels,
-    datasets: positions.map((position, index) => ({
-      label: position,
-      data: chartData.percentages[position],
-      rawCounts: chartData.counts[position],
-      backgroundColor: withAlpha(colors[index], 0.82),
-      borderColor: colors[index],
-      borderWidth: 1,
-      borderRadius: 6,
-      borderSkipped: false,
-      stack: 'share'
-    }))
+    labels,
+    datasets
   };
 
   const options = getBaseChartOptions({
+    indexAxis: 'y',
+    interaction: {
+      mode: 'index',
+      intersect: false
+    },
     plugins: {
       tooltip: {
         callbacks: {
           label(context) {
             const count = context.dataset.rawCounts[context.dataIndex];
-            return `${context.dataset.label}: ${count} players (${context.parsed.y.toFixed(1)}%)`;
+            return `${context.dataset.label}: ${count} (${context.parsed.x.toFixed(1)}%)`;
           }
         }
       }
@@ -35,13 +50,6 @@ function PositionCompositionByTierChart({ chartData }) {
     scales: {
       x: {
         stacked: true,
-        grid: {
-          display: false
-        }
-      },
-      y: {
-        stacked: true,
-        beginAtZero: true,
         max: 100,
         ticks: {
           callback(value) {
@@ -50,19 +58,26 @@ function PositionCompositionByTierChart({ chartData }) {
         },
         title: {
           display: true,
-          text: 'Share of Tier'
+          text: 'Tier Share'
+        }
+      },
+      y: {
+        stacked: true,
+        grid: {
+          display: false
         }
       }
     }
   });
 
   return (
-    <section className="chart-panel p-4 sm:p-5">
+    <section className="chart-shell">
       <SectionHeader
-        title="2025 Positional Composition by Tier"
-        subtitle="A 100% stacked view of how QB, RB, WR, and TE fill each cumulative scoring threshold."
+        eyebrow="2025 TIER COMPOSITION"
+        title="How 2025 Fills from Top-12 to Top-60"
+        subtitle="Horizontal 100% stacks show each tier’s positional structure as the pool expands by 12-player increments."
       />
-      <div className="h-[320px] sm:h-[350px]">
+      <div className="chart-canvas chart-canvas--lg">
         <Bar data={data} options={options} />
       </div>
     </section>

@@ -4,10 +4,13 @@ import seasonOutputRaw from '../../data/csv/SeasonOutputCompare_2019-2025.csv?ra
 import { parsePosDistribution, parseSeasonOutputCompare } from './loaders';
 import {
   buildDashboardModel,
+  getEliteScarcitySeries,
   getHeadlineStats,
   getInsightBullets,
   getOverallDeclineSeries,
-  getRbWrDeltaByTierAndYear
+  getRbWrDeltaByTierAndYear,
+  getRbWrDeltaMatrix,
+  getTopRangePositionTrend
 } from './metrics';
 
 function makeModel() {
@@ -29,6 +32,16 @@ describe('metrics', () => {
     expect(byId['elite-share-2025'].value).toBeCloseTo(5.56, 2);
   });
 
+  it('builds elite scarcity series with 2025 trough', () => {
+    const scarcity = getEliteScarcitySeries(makeModel());
+
+    const index2025 = scarcity.years.indexOf(2025);
+    expect(scarcity.counts[index2025]).toBe(2);
+    expect(scarcity.shares[index2025]).toBeCloseTo(5.56, 2);
+    expect(scarcity.min.year).toBe(2025);
+    expect(scarcity.min.count).toBe(2);
+  });
+
   it('captures RB vs WR shift in 2024 and 2025', () => {
     const shift = getRbWrDeltaByTierAndYear(makeModel());
     const bySeason = Object.fromEntries(shift.bySeason.map((bucket) => [bucket.season, bucket.values]));
@@ -41,6 +54,15 @@ describe('metrics', () => {
     expect(values2024.slice(1).every((entry) => entry.delta > 0)).toBe(true);
   });
 
+  it('exposes full RB/WR dominance matrix shape', () => {
+    const matrix = getRbWrDeltaMatrix(makeModel());
+
+    expect(matrix.seasons).toEqual([2020, 2021, 2022, 2023, 2024, 2025]);
+    expect(matrix.tiers).toEqual([60, 48, 36, 24, 12]);
+    expect(matrix.entries).toHaveLength(30);
+    expect(matrix.maxMagnitude).toBeGreaterThan(0);
+  });
+
   it('keeps overall trend aligned with decline statement', () => {
     const trend = getOverallDeclineSeries(makeModel());
     const top36 = trend.series.find((line) => line.id === 'ALL_TOP-36');
@@ -50,6 +72,16 @@ describe('metrics', () => {
 
     expect(top36.values[index2020]).toBe(7);
     expect(top36.values[index2025]).toBe(4);
+  });
+
+  it('returns top-60 position trends with WR contraction', () => {
+    const trend = getTopRangePositionTrend(makeModel(), 'TOP-60');
+    const wrSeries = trend.series.find((entry) => entry.position === 'WR');
+    const yearIndex = Object.fromEntries(trend.years.map((year, index) => [year, index]));
+
+    expect(wrSeries.values[yearIndex[2023]]).toBe(12);
+    expect(wrSeries.values[yearIndex[2024]]).toBe(8);
+    expect(wrSeries.values[yearIndex[2025]]).toBe(6);
   });
 
   it('returns insight bullets matching narrative checks', () => {
