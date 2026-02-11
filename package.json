@@ -1,0 +1,11 @@
+{
+  "name": "pos-a-2-root",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "cd POS-A_APP && npm run dev",
+    "build": "cd POS-A_APP && npm run build",
+    "preview": "cd POS-A_APP && npm run preview",
+    "test": "cd POS-A_APP && npm run test"
+  }
+}
